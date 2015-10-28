@@ -1,0 +1,482 @@
+<?php
+error_reporting(0);
+include('dbconnect.php');
+session_start();
+if(isset($_POST) && $_POST['femail'] != '')
+{
+
+    $query = mysql_query("select * from user_friends where friend_email='".$_POST['femail']."' and uid=".$_SESSION['userid']."");
+    $rows = mysql_num_rows($query);
+
+    if($rows ==1)
+    {
+        $error = "You have already added this friend.";
+    }
+    else
+    {
+        $sql = mysql_query("INSERT INTO user_friends (uid, friend_name, friend_email) VALUES ('".$_SESSION['userid']."', '".$_POST['fname']."', '".$_POST['femail']."')");
+        $error = "Added Succesfully";
+
+        $query = mysql_query("select * from users where Email_Id='".$_POST['femail']."'");
+        $rows = mysql_num_rows($query);
+if($rows ==0)
+    {
+        $to = $_POST['femail'];
+         $subject = "Request to join ShareIt";
+         
+         $message = "Hi ".$_POST['fname'].", <br><br>Your friend has invited you to join this site. Please click the below link.<br><br>http://shareout.us<br><br>Thankyou,<br>Shareout.";
+         //$message .= "<h1>This is headline.</h1>";
+         //echo $message;exit;
+         $header = "From:gajulapalli.aditya@gmail.com \r\n";
+         //$header = "Cc:afgh@somedomain.com \r\n";
+         $header .= "MIME-Version: 1.0\r\n";
+         $header .= "Content-type: text/html\r\n";
+         
+         $retval = mail ($to,$subject,$message,$header);
+         
+         if( $retval == true )
+         {
+            $error= "Message sent successfully...";
+         }
+         else
+         {
+            $error= "Message could not be sent...";
+         }
+     }
+    }
+}
+
+if(isset($_POST) && $_POST['groupname'] != '')
+{
+    $query = mysql_query("select * from groups where group_name='".$_POST['groupname']."'");
+    $rows = mysql_num_rows($query);
+
+    if($rows ==1)
+    {
+        $error = "This group name already existing. Please try another one.";
+    }
+    else
+    {
+        $date= date('Y-m-d H:i:s');
+        $sql = mysql_query("INSERT INTO groups (user_id, group_name, createddate) VALUES ('".$_SESSION['userid']."', '".$_POST['groupname']."', '".$date."')");
+        $error = "Added Succesfully";
+    }
+}
+    $query = mysql_query("select * from user_friends where uid=".$_SESSION['userid']."");
+    $rows = mysql_num_rows($query);
+
+    $query1 = mysql_query("select * from groups where user_id=".$_SESSION['userid']."");
+    $rows1 = mysql_num_rows($query1);
+    //$res_array = mysql_fetch_assoc($query);
+    //print_r($res_array);
+?>
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+
+<meta charset="utf-8">
+<title>Share It</title>
+
+<link rel="stylesheet" type="text/css" href="css/adityastyles.css">
+
+
+<script src="js/jquery1.11.js"></script>
+
+</head>
+<body>
+<?php include("header.php"); ?>     
+<div class="dashboard">
+<div class="leftdashboard">
+<h1>Dashboard</h1>
+<p class="recentactivitytext">Recent Activity</p>
+<div class="addgroups">
+<p class="grouptext">Groups</p>
+<p class="addtext addgroupstext">Add +</p>
+</div>
+<input type="text" id="searchgroup" name="searchgroup" placeholder="Search Groups Here" onkeyup="suggest_group(this.value);" class="searchfriendstext" />
+<div id="newgroup"></div>
+<div id="oldgroup">
+<?php while($result1 = mysql_fetch_assoc($query1)) { ?>
+<div class="groupslist">
+<img src="images/groupsicon.jpg" alt="Group image" class="groupicon" />
+<p class="groupname"><?php echo $result1['group_name']; ?></p>
+</div>
+<?php } ?>
+</div>
+<div class="addgroups">
+<p class="grouptext ">Friends</p>
+<p class="addtext addfriends">Add +</p>
+</div>
+<input type="text" id="searchfriends" name="searchfriends" onkeyup="suggest(this.value);" placeholder="Search Friends Here" class="searchfriendstext" />
+<div id="newlist"></div>
+<div id="oldlist">
+<?php while($result = mysql_fetch_assoc($query)) { ?>
+<div class="tfriendslist" id="tfriendslist<?php echo $result['id']; ?>">
+<a href="friendsdetails.php"><img src="images/friendsicon.jpg" alt="Group image" class="groupicon" />
+<p class="addfriendsname"><?php echo $result['friend_name']; ?></p></a>
+<img src="images/deletefrnd.png" alt="Group image" class="deletefrndimg" onclick="deletefrnd('<?php echo $result['id']; ?>');" />
+</div>
+<?php } ?>
+</div>
+</div>
+<div class="rightdashboard">
+<div class="amountdetails">
+<div class="amounttext">
+<p class="amountheading">Total Amount</p>
+<p class="amountdata">$12000</p>
+</div>                        
+<div class="amounttext">
+<p class="amountheading">You Receive</p>
+<p class="amountdata amountreceive">$16000</p>
+</div>                                      
+<div class="amounttext1">
+<p class="amountheading">You Pay</p>
+<p class="amountdata amountpay">$4000</p>
+</div>
+</div>
+<div class="notification">
+<div class="addbillbutton">
+<a href="javascript:void(0)" onclick="addbill();" ><input type="button" id="addbillb" name="addbillb" value="Add Bill" class="addbillb" /></a>
+<a href="allexpenses.php"><input type="button" id="adexpense" name="adexpense" value="ALL EXPENSES" class="aexpense" /></a>
+</div>
+<div class="updates">
+<div class="totalupdates">
+<div style="color:green;"><?php echo $error; ?></div>
+<div class="update">
+<img src="images/friendsicon.jpg" alt="Group image" class="peopleicon" />
+<p class="friendsname">Sujith</p>
+<p class="receiveamt">$5000</p>
+</div>
+<div class="update">
+<img src="images/friendsicon.jpg" alt="Group image" class="peopleicon" />
+<p class="friendsname">Suhas</p>
+<p class="receiveamt">$5000</p>
+</div>
+<div class="update">
+<img src="images/friendsicon.jpg" alt="Group image" class="peopleicon" />
+<p class="friendsname">Kalyan</p>
+<p class="payamt">$5000</p>
+</div>
+</div>
+
+<!-- Add friend details -->
+<div class="totaladdfriend"><!-- totaladdfriend starts here -->
+<p class="addfriendheading">Add Friend</p>
+<form method="post" action="" name="form1" id="form1">
+<div class="totaladdfrienddetails"><!-- totaladdfrienddetails starts here -->
+<input type="text" id="fname" name="fname" placeholder="Enter Friends Name" class="friendsmailbox friendnamebox">
+<input type="text" id="femail" name="femail" placeholder="Enter Friends email id" class="friendsmailbox friendnamebox">
+<input type="submit"  value="Add" class="addfriendbox">
+<input type="button" value="Cancel" class="cancelfriendbox">
+</div><!-- totaladdfrienddetails ends here -->
+</form>
+</div><!-- totaladdfriend ends here -->
+
+
+<!-- Add Group details -->
+<div class="totaladdgroup"><!-- totaladdgroup starts here -->
+<p class="addfriendheading">Add Group</p>
+<form method="post" action="" name="form2" id="form2">
+<div class="totaladdfrienddetails"><!-- totaladdfrienddetails starts here -->
+<input type="text" id="groupname" name="groupname" placeholder="Enter Group Name" class="friendsmailbox">
+
+<input type="submit" id="" name="" value="Add" class="addfriendbox">
+<input type="submit" id="" name="" value="Cancel" class="cancelgroupbox">
+</div><!-- totaladdfrienddetails ends here -->
+</form>
+</div><!-- totaladdgroup ends here -->
+
+
+<!-- Recent Activity details -->
+<div class="totalrecentactivity"><!-- totalrecentactivity starts here -->
+<p class="addfriendheading">Recent Activity</p>
+<div class="totaladdfrienddetails"><!-- totaladdfrienddetails starts here -->
+<p class="recentactivitydata">Aditya added sujith</p>
+<p class="recentactivitydata">Aditya added sujith</p>
+<p class="recentactivitydata">Aditya added sujith</p>
+<input type="submit" id="" name="" value="Back" class="recentcancel">
+</div><!-- totaladdfrienddetails ends here -->
+</div><!-- totalrecentactivity ends here -->
+
+<!-- Group name click -->
+
+<div class="totalgroupnamedata"><!-- totalgroupnamedata starts here -->
+<div class="totalgroupnameheadingdetails"><!-- totalgroupnameheadingdetails starts here -->
+<label class="groupnameheading">Group Name : </label>
+<input type="text" id="" name="" value="Roomates" class="groupnamedata" />
+<input type="button" id="" name="" value="Delete group" class="deletegroup" />
+</div><!-- totalgroupnameheadingdetails ends here -->
+<div class="totalmemberdetails"><!-- totalmemberdetails starts here -->
+<div class="totalmemberheading"><!-- totalmemberheading starts here -->
+<p class="groupmemberheading">Group Members</p>
+<!-- <p class="groupmemberaddtext">Add +</p> -->
+</div><!-- totalmemberheading ends here -->
+<div class="totalsinglememberdata"><!-- totalsinglememberdata starts here -->
+<p class="groupmembername">Aditya</p>
+<p class="groupmemberemail">aditya@gmail.com</p>
+<input type="button" id="" name="" value="Delete" class="deletemember" />
+</div><!-- totalsinglememberdata ends here -->
+<div class="totalsinglememberdata"><!-- totalsinglememberdata starts here -->
+<p class="groupmembername">Aditya</p>
+<p class="groupmemberemail">aditya@gmail.com</p>
+<input type="button" id="" name="" value="Delete" class="deletemember" />
+</div><!-- totalsinglememberdata ends here -->
+<div class="totalsinglememberdata"><!-- totalsinglememberdata starts here -->
+<p class="groupmembername">Aditya</p>
+<p class="groupmemberemail">aditya@gmail.com</p>
+<input type="button" id="" name="" value="Delete" class="deletemember" />
+</div><!-- totalsinglememberdata ends here -->
+<div class="totaladdmemberdata"><!-- totaladdmemberdata starts here -->
+<input type="text" id="" name="" placeholder="Enter Name" class="addgroupmembername" />
+<input type="text" id="" name="" placeholder="Enter Emailid" class="addgroupmemberemail" />
+<input type="button" id="" name="" value="Add" class="addnewmembergroup" />
+</div><!-- totaladdmemberdata ends here -->
+<input type="submit" id="" name="" value="Save" class="addfriendbox">
+<input type="submit" id="" name="" value="Cancel" class="cancelgroupmemberbox">
+
+</div><!-- totalmemberdetails ends here -->    
+</div><!-- totalgroupnamedata ends here -->
+
+<!-- Add Bill Pop UP -->
+
+<div id="adbillpoup" class="totalloginpopupdata"><!-- addbillpopup starts here -->
+<input type="text" id="billpersonname" name="billpersonemail" placeholder="Enter User Name" class="billpersonname" />
+<input type="text" id="billpersonname" name="billpersonemail" placeholder="Enter User Email" class="billpersonname" />
+<input type="text" id="billpersonname" name="billpersonemail" placeholder="Enter Description" class="billpersonname" />
+<input type="text" id="billpersonname" name="billpersonemail" placeholder="Enter Amount" class="billpersonname" />
+<input type="date" id="billpersonname" name="billpersonemail" placeholder="Enter Amount" class="billpersonname datebox" />
+<input type="submit" id="paddbill" name="paddbill" value="Add Bill" class="paddbill">
+<input type="button" id="pcancelbill" name="pcancelbill" value="Cancel Bill" class="pcancelbill">
+
+</div><!-- addbillpopup ends here -->
+<div id="screen" onClick="addbillclose();"></div>   
+
+</div>
+
+
+
+                            
+                            
+<img src="images/reportsimg.png" alt="Report image" class="reportimg" />
+                            
+</div>
+</div>
+</div>
+    
+</body>
+</html>
+<script type="text/javascript">
+$(document).ready(function () {
+	$('.totalaccountlinks').click(function(){
+         $('.accountlinks').slideToggle(300);
+    });
+});
+
+$('document').ready(function(){
+
+            $('#form1').validate({
+                    rules:{
+                       
+                        "fname":{
+                            required:true
+                        },
+                        "femail":{
+                            required:true,
+                            email: true
+                        }},
+
+
+
+                    messages:{
+                        
+                        "fname":{
+                            required:"<span class='error1'>This field is required</span>"
+                        },
+
+                        "femail":{
+                            required:"<span class='error2'>This field is required</span>"
+                        }},
+
+                    submitHandler: function(form){
+                      $(form).ajaxSubmit({
+       success: function() {
+       $("#successMessage").show();
+       $('#form1')[0].reset();
+        }
+    }); 
+            
+                    }
+                
+            })
+                        
+        });
+
+
+$('document').ready(function(){
+
+            $('#form2').validate({
+                    rules:{
+                       
+                        "groupname":{
+                            required:true
+                        }},
+
+
+
+                    messages:{
+                        
+                        "groupname":{
+                            required:"<span class='error3'>This field is required</span>"
+                        }},
+
+                    submitHandler: function(form){
+                      $(form).ajaxSubmit({
+       success: function() {
+       $("#successMessage").show();
+       $('#form2')[0].reset();
+        }
+    }); 
+            
+                    }
+                
+            })
+                        
+        });
+</script>
+
+<!-- Add Friend Script -->
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.addfriends').click(function(){
+         $('.totalupdates, .totaladdgroup').hide();
+         $('.totaladdfriend').show();
+    });
+    $('h1, .cancelfriendbox').click(function(){
+         $('.totalupdates').show();
+         $('.totaladdfriend').hide();
+    });
+});
+</script>
+
+<!-- Add Group Script -->
+
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.addgroupstext').click(function(){
+         $('.totalupdates, .totaladdfriend').hide();
+         $('.totaladdgroup').show();
+    });
+    $('h1, .cancelgroupbox').click(function(){
+         $('.totalupdates').show();
+         $('.totaladdgroup').hide();
+    });
+});
+</script>
+
+<!-- Recent Activity Script -->
+
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.recentactivitytext').click(function(){
+         $('.totalupdates, .totaladdfriend, .totaladdgroup').hide();
+         $('.totalrecentactivity').show();
+    });
+    $('h1, .recentcancel').click(function(){
+         $('.totalupdates').show();
+         $('.totalrecentactivity').hide();
+    });
+});
+</script>
+
+<!-- group name click -->
+
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.groupslist').click(function(){
+         $('.totalupdates, .totaladdfriend, .totaladdgroup, .totalrecentactivity').hide();
+         $('.totalgroupnamedata').show();
+    });
+    $('h1, .cancelgroupmemberbox').click(function(){
+         $('.totalupdates').show();
+         $('.totalgroupnamedata').hide();
+    });
+});
+
+// code to check the add friend validation
+
+
+function checkEmail(email) {
+var regExp = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+return regExp.test(email);
+}
+
+function suggest(searchtxt)
+{
+    $("#oldlist").hide();
+    $.post( "ajax.php", { searchtxt: searchtxt })
+  .done(function( data ) {
+    //alert( "Data Loaded: " + data );
+    //alert(data);
+    $("#newlist").html(data);
+    
+  });
+}
+
+function suggest_group(grouptxt)
+{
+    $("#oldgroup").hide();
+    $.post( "ajax.php", { grouptxt: grouptxt })
+  .done(function( data ) {
+    //alert( "Data Loaded: " + data );
+    //alert(data);
+    $("#newgroup").html(data);
+    
+  });
+}
+
+function deletefrnd(fid)
+{
+    var r = confirm("Are you sure you want to delete this friend");
+    if (r == true)
+    {
+
+        $.post( "ajax.php", { fid: fid })
+  .done(function( data ) {
+    //alert( "Data Loaded: " + data );
+    //alert(data);
+    $('#tfriendslist'+fid).hide();
+    
+  });
+    }
+
+}
+</script>
+
+<!-- Poup Script -->
+
+<script type="text/javascript">
+window.document.onkeydown = function (e)
+{
+    if (!e){
+        e = event;
+    }
+    if (e.keyCode == 27){
+        addbillclose();
+    }
+}
+function addbill(){
+    window.scrollTo(0,0);
+    document.getElementById('adbillpoup').style.display='block';
+    document.getElementById('screen').style.display='block';
+}
+function addbillclose(){
+    document.getElementById('adbillpoup').style.display='none';
+    document.getElementById('screen').style.display='none';
+}
+$('.pcancelbill').click(function (){
+    document.getElementById('adbillpoup').style.display='none';
+    document.getElementById('screen').style.display='none';
+});
+</script>
+<script type="text/javascript" src="js/jquery.validate.js"></script> 
