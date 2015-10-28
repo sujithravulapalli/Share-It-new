@@ -1,0 +1,250 @@
+<?php
+// this is used to remove all the warning messages on the page
+error_reporting(0);
+// database connection file
+include('dbconnect.php');
+
+// to check the login posted values are valid or invalid. If valid it takes to the dashboard.
+if(isset($_POST) && $_POST['emailid'] != '')
+{
+
+    $query = mysql_query("select * from users where Email_Id= '".$_POST['emailid']."' and password= '".md5($_POST['password'])."' ");
+    $rows = mysql_num_rows($query);
+
+    $result_query = mysql_fetch_assoc($query);
+
+    if($rows >0)
+    {
+        // starting the user session
+        session_start();
+        // assigning the values to the sessions
+        $_SESSION['name'] = $result_query['Name'];
+        $_SESSION['emailid'] = $result_query['Email_Id'];
+        $_SESSION['userid'] = $result_query['id'];
+
+        // redirecting to the user dashboard 
+        header("location: dashboard.php");
+        exit;
+
+    }
+    else
+    {
+        
+        $result = "Email Id or Password is Incorrect.";
+    }
+}
+
+// checking the email id is in our database or not.
+
+if(isset($_POST['femail']) && $_POST['femail'] != '')
+{
+    
+//$email = "abc123@lolhaha"; // Invalid email address 
+//$regex = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"; 
+if(eregi("^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,3})$", $_POST['femail'])) { 
+     $query = mysql_query("select * from users where Email_Id= '".$_POST['femail']."' ");
+    $rows = mysql_num_rows($query);
+
+    $result_query = mysql_fetch_assoc($query);
+
+    if($rows >0)
+    {
+        session_start();
+        // assigning the values to the sessions
+        //$_SESSION['name'] = $result_query['Name'];
+        $_SESSION['femail'] = $result_query['Email_Id'];
+
+        header("location: newpassword.php");
+        exit;
+    }
+    else
+    {
+        $result= "You are not a registered user. Please register to be a member.";
+    }
+} else { 
+     $result= "<b>".$_POST['femail'] . "</b> is an invalid email.";
+} 
+
+    
+}
+
+
+if($_REQUEST['result'] == 'success')
+{
+    $result = "Password updated. Please login to continue.";
+}
+?>
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+
+<!-- Basic Page Head -->
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Share It</title>
+
+<!-- Css -->
+<link rel="stylesheet" type="text/css" href="css/styles.css">
+
+<!-- Scripts -->
+<script src="js/jquery1.11.js"></script>
+<style type="text/css">
+
+</style>
+
+<script type="text/javascript">
+            $('document').ready(function(){
+
+            $('#form').validate({
+                    rules:{
+                        "name":{
+                            required:true
+                        },
+                        "mobile":{
+                            required:true,
+                            number: true
+                        },
+                        "emailid":{
+                            required:true,
+                            email: true
+                        },
+                        "password":{
+                            required:true
+                        }},
+
+
+
+                    messages:{
+                        "name":{
+                            required:"This field is required"
+                        },
+
+                        "mobile":{
+                            required:"This field is required"
+                        },
+                        "emailid":{
+                            required:"This field is required"
+                        },
+                        "password":{
+                            required:"This field is required"
+                        }},
+
+                    submitHandler: function(form){
+                      $(form).ajaxSubmit({
+       success: function() {
+       $("#successMessage").show();
+       $('#form')[0].reset();
+        }
+    }); 
+            
+                    }
+                
+            })
+                        
+        });
+        </script> 
+
+
+        <script type="text/javascript">
+            $('document').ready(function(){
+
+            $('#form1').validate({
+                    rules:{
+                       
+                        "emailid":{
+                            required:true,
+                            email: true
+                        },
+                        "password":{
+                            required:true
+                        }},
+
+
+
+                    messages:{
+                        
+                        "emailid":{
+                            required:"This field is required"
+                        },
+                        "password":{
+                            required:"This field is required"
+                        }},
+
+                    submitHandler: function(form){
+                      $(form).ajaxSubmit({
+       success: function() {
+       $("#successMessage").show();
+       $('#form1')[0].reset();
+        }
+    }); 
+            
+                    }
+                
+            })
+                        
+        });
+        </script> 
+</head>
+<body>
+
+    <div class="header" ><!-- header starts here -->
+<div class="title">$hare !t</div>
+</div><!-- header ends here -->
+<div class="completelogindetails"><!-- completelogindetails starts here -->
+<?php echo $result; ?>
+<div class="loginp1"><!-- loginp1 starts here -->
+<input type="button" id="logintext" name="logintext" value="Login" class="logindata" />
+<form method="post" id="form1" action="">
+<div class="logindetails"><!-- logindetails starts here -->
+<input type="text" id="emailid" name="emailid" placeholder="Email Id" class="logintext" />
+<input type="password" id="password" name="password" placeholder="Password" class="logintext" />
+<input type="submit" id="usernametext" name="usernametext" value="Login To ShareIt" class="userlogin" />
+</form>
+<form method="post" action="">
+<a href="javascript:void(0)" class="forgotpwdtext">Forgot Password</a>
+<input type="text" id="femail" name="femail" placeholder="Enter Your Email Id" class="forgotpwdemailtext" />
+<!-- <a href="newpassword.php"><input type="button" value="Go" class="forgotpwdemailgo" /></a> -->
+						 
+</form>
+</div><!-- logindetails ends here -->
+                    
+</div><!-- loginp1 ends here -->
+<div class="totalsignup"><!-- totalsignup starts here -->
+<input type="button" id="signuptext" name="signuptext" value="Sign Up" class="signuptext" />
+<form method="post" name="form" id="form" action="signup.php">
+<div class="signupdetails"><!-- signupdetails starts here -->
+<input type="text" id="name" name="name" placeholder="Name" class="logintext" />
+<input type="text" id="mobile" name="mobile" placeholder="Mobile" class="logintext" />
+<input type="text" id="emailid" name="emailid" placeholder="Email Id" class="logintext" />
+<input type="password" id="password" name="password" placeholder="Password" class="logintext" />
+<input type="submit" id="signup" name="usernametext" value="Signup To ShareIt" class="userlogin" />
+</div><!-- signupdetails ends here -->
+</form>
+</div><!-- totalsignup ends here -->
+</div><!-- completelogindetails ends here -->
+                
+
+    
+</body>
+</html>
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.logindata').click(function(){
+         $('.signupdetails').hide();
+         $('.logindetails').slideToggle(800);
+    });
+    $('.signuptext').click(function(){
+        $('.logindetails').hide();
+         $('.signupdetails').slideToggle(800);
+    });
+    $('.forgotpwdtext').click(function(){
+         $('.forgotpwdemailtext, .forgotpwdemailgo').slideToggle(500);
+    });
+
+    
+});
+
+
+
+</script>
+ <script type="text/javascript" src="js/jquery.js"></script> 
+<script type="text/javascript" src="js/jquery.validate.js"></script> 
