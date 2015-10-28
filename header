@@ -1,0 +1,15 @@
+<div class="innerheader"><!-- header starts here -->
+<div class="totalaccountlinks"><!-- totalaccountlinks starts here -->
+<label class="dropdownarrow"></label>
+<div class="usernamet"><!-- usernamet starts here -->
+<p><?php echo $_SESSION['name']; ?></p>
+                        
+</div><!-- usernamet ends here -->
+
+</div><!-- totalaccountlinks ends here -->
+<div class="accountlinks"><!-- accountlinks starts here -->
+<a href="dashboard.php">Home</a>
+<a href="account.php">My Account</a>
+<a href="logout.php" class="logtext">Logout</a>
+</div><!-- accountlinks ends here -->
+</div><!-- header ends here -->
